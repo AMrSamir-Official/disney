@@ -1,167 +1,188 @@
+import CloseIcon from "@mui/icons-material/Close";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import {
   Box,
   Button,
   CardMedia,
+  IconButton,
+  InputAdornment,
+  LinearProgress,
   Modal,
   TextField,
   Typography,
-} from '@mui/material';
-import React, { FC, useState, useEffect } from 'react';
-import CloseIcon from '@mui/icons-material/Close';
-import { withStyles } from '@mui/styles';
-import { LoginPageStyle } from './LoginPage.Style';
-import { auth } from '../../Utils/firebase/firebaseConfig';
-import toast, { Toaster } from 'react-hot-toast';
+} from "@mui/material";
+import { withStyles } from "@mui/styles";
 import {
-  PhoneAuthProvider,
-  RecaptchaVerifier,
-  signInWithCredential,
-  signInWithPhoneNumber,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
   signOut,
-} from 'firebase/auth';
-import 'swiper/css';
-import 'swiper/css/pagination';
-import 'swiper/css/navigation';
-import 'react-phone-number-input/style.css';
-import PhoneInput from 'react-phone-number-input';
-import './LoginPage.css';
-import { useDispatch, useSelector } from 'react-redux';
-import HoverCardPage from '../../Common Component/Hover Card/HoverCardPage';
-import LinearProgress from '@mui/material/LinearProgress';
+  updateEmail,
+  updatePassword,
+  updateProfile,
+} from "firebase/auth";
+import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
+import React, { FC, useEffect, useState } from "react";
+import toast, { Toaster } from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
+import { auth } from "../../Utils/firebase/firebaseConfig";
 import {
   ADD_USER_NUMBER,
   DELETE_USER_NUMBER,
-} from '../../Utils/redux/reducer/reducer';
+} from "../../Utils/redux/reducer/reducer";
+import { LoginPageStyle } from "./LoginPage.Style";
+import "./LoginPage.css";
 
 interface IProps {
   classes?: any;
 }
 
-const LoginPage: FC<IProps> = (props: IProps) => {
+const AuthPage: FC<IProps> = (props: IProps) => {
   const [open, setOpen] = React.useState(false);
-  const [phonenumber, setPhonenumber] = useState<string>('');
-  const [verificationId, setVerificationId] = useState<string>('');
-  const [otp, setOtp] = useState<string>('');
-  const [currNumber, setCurrNumber] = useState<any>('');
-  const [isloading, setIsLoading] = useState<boolean>(false);
+  const [profileModalOpen, setProfileModalOpen] = React.useState(false);
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [currEmail, setCurrEmail] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isSignUp, setIsSignUp] = useState<boolean>(false); // Flag for sign-up mode
+  const [showPassword, setShowPassword] = useState<boolean>(false); // Flag for password visibility
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const [newEmail, setNewEmail] = useState<string>("");
+  const [newPassword, setNewPassword] = useState<string>("");
 
   const { watchLater } = useSelector((state: any) => state.moviesSlice);
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+  const handleProfileModalOpen = () => setProfileModalOpen(true);
+  const handleProfileModalClose = () => setProfileModalOpen(false);
   const { classes } = props;
   const dispatch = useDispatch();
-  const handleChange = (value: undefined) => {
-    if (value) {
-      setPhonenumber(value);
-    }
-  };
+  const storage = getStorage(); // Initialize Firebase Storage
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-    setTimeout(() => {
+  const handleSignIn = async () => {
+    try {
       setIsLoading(true);
-    }, 2000);
-  }, []);
-
-  // captcha handler---------------
-  const handleappverifier: any = async (event: any) => {
-    if (event.key === 'Enter') {
-      const recaptchaVerifier = new RecaptchaVerifier(
-        'recaptcha-container',
-        {
-          size: 'normal',
-          callback: (response: any) => {
-            console.log(response);
-          },
-          'expired-callback': () => {},
-        },
-        auth
-      );
-      // singIn handler---------------------
-      return signInWithPhoneNumber(auth, phonenumber, recaptchaVerifier)
-        .then((confirmationResult) => {
-          // console.log('--------', confirmationResult);
-          setVerificationId(confirmationResult.verificationId);
-          toast.success('OTP sent successfully');
-        })
-        .catch((error) => {
-          alert(error);
-        });
-    }
-  };
-
-  // user login check------------------
-  useEffect(() => {
-    auth.onAuthStateChanged((user) => {
-      if (user) {
-        setCurrNumber(user.phoneNumber);
-        dispatch(ADD_USER_NUMBER(user.phoneNumber));
+      if (isSignUp) {
+        // Sign up logic
+        await createUserWithEmailAndPassword(auth, email, password);
+        toast.success("Sign up successfully");
       } else {
-        setCurrNumber('');
-      }
-    });
-  }, []);
-
-  // otp handler-------------------------
-  const handleOtp = async (event: any) => {
-    if (event.key === 'Enter') {
-      try {
-        const authCredential = PhoneAuthProvider.credential(
-          verificationId,
-          otp
-        );
-        await signInWithCredential(auth, authCredential)
-          .then((data) => data.user)
-          .then((data) => setCurrNumber(data.phoneNumber));
-        toast.success('Sign in successfully');
-      } catch (e) {
-        alert(e);
+        // Sign in logic
+        await signInWithEmailAndPassword(auth, email, password);
+        toast.success("Sign in successfully");
       }
       handleClose();
+    } catch (error: any) {
+      toast.error(`Error: ${error.message}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // signout handler--------------
+  const handleProfileUpdate = async () => {
+    try {
+      const user = auth.currentUser;
+      if (user) {
+        if (newEmail) {
+          await updateEmail(user, newEmail);
+          toast.success("Email updated successfully");
+          setCurrEmail(newEmail);
+        }
+        if (newPassword) {
+          await updatePassword(user, newPassword);
+          toast.success("Password updated successfully");
+        }
+      }
+    } catch (error: any) {
+      toast.error(`Error: ${error.message}`);
+    } finally {
+      handleProfileModalClose();
+    }
+  };
 
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setCurrEmail(user.email || "");
+        dispatch(ADD_USER_NUMBER(user.email || ""));
+        setProfilePhoto(user.photoURL || "/default-profile.png");
+      } else {
+        setCurrEmail("");
+        setProfilePhoto(null);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [dispatch]);
+
+  // Sign out handler
   const handleSignOut = () => {
     signOut(auth)
       .then(() => {
-        toast.success('Sign out Successful!');
-        dispatch(DELETE_USER_NUMBER(''));
+        toast.success("Sign out successful!");
+        dispatch(DELETE_USER_NUMBER(""));
       })
       .catch((error) => {
-        toast.success('An error happened.!');
+        toast.error(`Error: ${error.message}`);
       });
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && auth.currentUser) {
+      const userId = auth.currentUser.uid;
+      const storageRef = ref(storage, `profilePhotos/${userId}`); // Create a reference for the file
+
+      try {
+        await uploadBytes(storageRef, file); // Upload the file
+        const photoURL = await getDownloadURL(storageRef); // Get the download URL
+
+        // Update Firebase profile photo
+        await updateProfile(auth.currentUser, { photoURL });
+
+        setProfilePhoto(photoURL); // Update profile photo state
+      } catch (error) {
+        console.error("Error uploading photo: ", error);
+      }
+    }
   };
 
   return (
     <React.Fragment>
-      <Box sx={{ height: '100vh', margin: '0 auto' }}>
-        {!isloading ? <LinearProgress /> : null}
+      <Box sx={{ height: "100vh", margin: "0 auto" }}>
+        {isLoading && <LinearProgress />}
 
         <Box className={classes.mainWrapper}>
-          {currNumber === '' ? (
-            <Box sx={{ position: 'relative', top: '20rem' }}>
+          {currEmail === "" ? (
+            <Box sx={{ position: "relative", top: "20rem" }}>
               <Typography className={classes.loginTitle}>
-                Login to Disney+ Hotstar
+                {isSignUp ? "Sign Up for Disney" : "Sign In to Disney"}
               </Typography>
               <Typography className={classes.startWatching}>
-                Start watching from where you left off, personalise for kids and
-                more
+                Start watching from where you left off, personalize for kids,
+                and more
               </Typography>
               <Button onClick={handleOpen} className={classes.loginNowTitle}>
-                Login Now
+                {isSignUp ? "Sign Up Now" : "Sign In Now"}
+              </Button>
+              <Button
+                onClick={() => setIsSignUp(!isSignUp)}
+                className={classes.switchModeTitle}
+              >
+                {isSignUp
+                  ? "Already have an account? Sign In"
+                  : "New to Disney? Sign Up"}
               </Button>
             </Box>
           ) : (
             <Box className={classes.loggedBoxWrapper}>
               <Box className={classes.loggedTitleBox}>
                 <Typography className={classes.loggedTitle}>
-                  Subscribe to enjoy Disney+ HotStar
+                  Subscribe to enjoy Disney
                 </Typography>
                 <Typography className={classes.loggedTitle}>
-                  {currNumber}
+                  {currEmail}
                 </Typography>
               </Box>
               <Box className={classes.loggedTitleBox2}>
@@ -169,168 +190,174 @@ const LoginPage: FC<IProps> = (props: IProps) => {
                 <Button className={classes.helpBtn} onClick={handleSignOut}>
                   Sign out
                 </Button>
+                <Button
+                  variant="outlined"
+                  className={classes.profileBtn}
+                  onClick={handleProfileModalOpen}
+                >
+                  View Profile
+                </Button>
               </Box>
             </Box>
           )}
+
+          {/* Authentication Modal */}
           <Modal
             open={open}
             aria-labelledby="modal-modal-title"
             aria-describedby="modal-modal-description"
           >
             <Box className={classes.modalWrapper}>
-              {verificationId === '' ? (
-                <Box className={classes.modalTopBody}>
-                  <Box className={classes.closeIconBox}>
-                    <Button onClick={handleClose}>
-                      <CloseIcon className={classes.closeIcon} />
-                    </Button>
-                  </Box>
-                  <Typography className={classes.modalLoginTitle}>
-                    Log in or sign up to continue
-                  </Typography>
-                  <Box className={classes.modalInputBox}>
-                    <TextField
-                      label="+91"
-                      type="number"
-                      disabled
-                      sx={{
-                        textAlign: 'center',
-                        width: '60px',
-                        fontFamily: '"Inter",sans-serif !important',
-                        marginRight: '10px !important',
-                        border: '1px solid #8f98b2 !important',
-                        borderRadius: '4px',
-                        '.css-14s5rfu-MuiFormLabel-root-MuiInputLabel-root': {
-                          color: '#8f98b2 !important',
-                        },
-                      }}
-                    />
-                    <PhoneInput
-                      defaultCountry="IN"
-                      placeholder="Enter mobile number"
-                      value={phonenumber}
-                      onChange={handleChange}
-                      onKeyDown={handleappverifier}
-                    />
-                    <div
-                      className={classes.recaptchaStyle}
-                      id="recaptcha-container"
-                    />
-                  </Box>
-                  <Typography className={classes.modalByProceeding}>
-                    By proceeding you confirm that you are above 18 years of age
-                    and agree to the Privacy Policy & Terms of Use
-                  </Typography>
-                </Box>
-              ) : (
-                <Box className={classes.modalTopBody}>
-                  <Box className={classes.closeIconBox}>
-                    <Button onClick={handleClose}>
-                      <CloseIcon className={classes.closeIcon} />
-                    </Button>
-                  </Box>
-                  <Typography className={classes.modalLoginTitle}>
-                    Confirm OTP
-                  </Typography>
-                  <Box className={classes.modalInputBox}>
-                    <TextField
-                      placeholder="Enter otp"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value)}
-                      // onChange={handleChange}
-                      onKeyDown={handleOtp}
-                      sx={{
-                        border: '1px solid #8f98b2 !important',
-                        borderRadius: '4px',
-                        '.css-9ddj71-MuiInputBase-root-MuiOutlinedInput-root ':
-                          {
-                            color: '#8f98b2 !important',
-                            '& input[type=number]': {
-                              '-moz-appearance': 'textfield !important',
-                            },
-                            '& input[type=number]::-webkit-outer-spin-button': {
-                              '-webkit-appearance': 'none',
-                              margin: '0 !important',
-                            },
-                            '& input[type=number]::-webkit-inner-spin-button': {
-                              '-webkit-appearance': 'none',
-                              margin: '0 !important',
-                            },
-                          },
-                        '.css-14s5rfu-MuiFormLabel-root-MuiInputLabel-root': {
-                          color: '#8f98b2 !important',
-                        },
-                        '.css-1d3z3hw-MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#8f98b2 !important',
-                        },
-                        '.css-14lo706': {
-                          color: '#8f98b2 !important',
-                        },
-                      }}
-                    />
-                  </Box>
-                  <Typography className={classes.modalByProceeding}>
-                    By proceeding you confirm that you are above 18 years of age
-                    and agree to the Privacy Policy & Terms of Use
-                  </Typography>
-                </Box>
-              )}
+              <Box className={classes.closeIconBox}>
+                <Button onClick={handleClose}>
+                  <CloseIcon className={classes.closeIcon} />
+                </Button>
+              </Box>
+              <Typography className={classes.modalLoginTitle}>
+                {isSignUp ? "Sign Up" : "Sign In"} to continue
+              </Typography>
+              <Box
+                sx={{ display: "flex", flexDirection: "column" }}
+                className={classes.modalInputBox}
+              >
+                <TextField
+                  label="Email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  sx={{
+                    color: "white",
+                    marginBottom: "10px",
+                    "& .MuiInputLabel-root": { color: "white" },
+                    "& .MuiInputBase-input": { color: "white" },
+                  }}
+                />
+                <TextField
+                  label="Password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSignIn()}
+                  sx={{
+                    color: "white",
+                    "& .MuiInputLabel-root": { color: "white" },
+                    "& .MuiInputBase-input": { color: "white" },
+                  }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+                <Button
+                  variant="contained"
+                  color="primary"
+                  sx={{
+                    marginTop: "20px",
+                    backgroundColor: "#007bff",
+                    "&:hover": { backgroundColor: "#0056b3" },
+                  }}
+                  onClick={handleSignIn}
+                >
+                  {isSignUp ? "Sign Up" : "Sign In"}
+                </Button>
+              </Box>
+              <Typography className={classes.modalByProceeding}>
+                By proceeding you confirm that you are above 18 years of age and
+                agree to the Terms of Service and Privacy Policy
+              </Typography>
+            </Box>
+          </Modal>
 
-              <Box className={classes.modalHavingtroubleBox}>
-                <Typography className={classes.modalHavingtrouble}>
-                  Having trouble logging in?
+          {/* Profile Modal */}
+          <Modal
+            open={profileModalOpen}
+            aria-labelledby="modal-modal-title"
+            aria-describedby="modal-modal-description"
+          >
+            <Box className={classes.modalWrapper}>
+              <Box className={classes.closeIconBox}>
+                <Button onClick={handleProfileModalClose}>
+                  <CloseIcon className={classes.closeIcon} />
+                </Button>
+              </Box>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
+              >
+                <Typography className={classes.modalLoginTitle}>
+                  Update Profile
                 </Typography>
-                <Typography className={classes.modalGetHelp}>
-                  Get Help
-                </Typography>
+                {profilePhoto && (
+                  <CardMedia
+                    component="img"
+                    image={profilePhoto}
+                    sx={{
+                      borderRadius: "50%",
+                      width: 100,
+                      height: 100,
+                      marginBottom: 2,
+                    }}
+                  />
+                )}
+                <Button variant="contained" component="label">
+                  Upload Profile Photo
+                  <input type="file" hidden onChange={handleFileChange} />
+                </Button>
+                <TextField
+                  label="New Email"
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  sx={{
+                    color: "white",
+                    marginTop: "20px",
+                    "& .MuiInputLabel-root": { color: "white" },
+                    "& .MuiInputBase-input": { color: "white" },
+                  }}
+                />
+                <TextField
+                  label="New Password"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  sx={{
+                    color: "white",
+                    marginTop: "20px",
+                    "& .MuiInputLabel-root": { color: "white" },
+                    "& .MuiInputBase-input": { color: "white" },
+                  }}
+                />
+                <Button
+                  variant="contained"
+                  color="primary"
+                  sx={{
+                    marginTop: "20px",
+                    backgroundColor: "#007bff",
+                    "&:hover": { backgroundColor: "#0056b3" },
+                  }}
+                  onClick={handleProfileUpdate}
+                >
+                  Update
+                </Button>
               </Box>
             </Box>
           </Modal>
         </Box>
-        {currNumber !== '' ? (
-          <Box className={classes.watchLaterListBox}>
-            {watchLater.length > 0 ? (
-              <Box
-                className={classes.wrapperBtn}
-                // onClick={() => navigateToViewAllPage()}
-              >
-                <Button className={classes.GenreBtn}>Watchlist</Button>
-                {/* <Button className={classes.viewAllBtn}>View All</Button> */}
-              </Box>
-            ) : null}
-
-            <Box sx={{ display: 'flex' }}>
-              {currNumber !== ''
-                ? watchLater?.map((movie: any, i = Date.now()) => {
-                    return (
-                      <Box
-                        className="mapBox"
-                        key={i}
-                        sx={{ marginRight: '10px' }}
-                      >
-                        <CardMedia
-                          className="mapImg"
-                          component="img"
-                          src={movie.poster}
-                        />
-                        <HoverCardPage
-                          Image={movie.Image}
-                          Genre={movie.Genre}
-                          ReleaseDate={movie.MovieYear}
-                          Overview={movie.Description}
-                          // NavigateToMediaPlayer={() => handleNavigatePlayer(movie)}
-                        />
-                      </Box>
-                    );
-                  })
-                : null}
-            </Box>
-          </Box>
-        ) : null}
         <Toaster />
       </Box>
     </React.Fragment>
   );
 };
 
-export default withStyles(LoginPageStyle)(LoginPage);
+export default withStyles(LoginPageStyle)(AuthPage);

@@ -1,12 +1,12 @@
-import { Component } from 'react';
-import { Box, Button, CardMedia, Grid, Typography } from '@mui/material';
-import { withStyles } from '@mui/styles';
-import { FooterPageStyle } from './FooterPage.Style';
-import fb from '../../images/socials/facebook.png';
-import twitter from '../../images/socials/twitter.png';
-import apple from '../../images/Downloads/apple.png';
-import android from '../../images/Downloads/android.png';
-
+import { Box, CardMedia, Grid, Typography } from "@mui/material";
+import { withStyles } from "@mui/styles";
+import { Component } from "react";
+import android from "../../images/Downloads/android.png";
+import apple from "../../images/Downloads/apple.png";
+import fb from "../../images/socials/facebook.png";
+import twitter from "../../images/socials/twitter.png";
+import Attribution from "../Attribution/Attribution";
+import { FooterPageStyle } from "./FooterPage.Style";
 interface FooterPageProps {
   classes: any;
 }
@@ -84,12 +84,12 @@ class FooterPage extends Component<FooterPageProps, FooterPageState> {
           </Grid>
           <Box className={classes.footerlastWrapper}>
             <Box>
-              <Typography className={classes.rightsReserved}>
-                © 2023 STAR. All Rights Reserved.
+              <Typography
+                sx={{ display: "flex" }}
+                className={classes.rightsReserved}
+              >
+                <Attribution />
               </Typography>
-              <Button className={classes.termsofUse}>Terms of Use</Button>
-              <Button className={classes.termsofUse}>Privacy Policy</Button>
-              <Button className={classes.termsofUse}>FAQ</Button>
             </Box>
             <Box className={classes.appDownload}>
               <Box className={classes.appDownloadBox}>

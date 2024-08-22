@@ -1,10 +1,10 @@
-import { Box, Button, IconButton } from '@mui/material';
-import React, { Component } from 'react';
-import { SidebarData } from '../../Data/Sidebar/SidebarData';
-import './SideBarPage.css';
-import { withStyles } from '@mui/styles';
-import { SidebarPageStyles } from './SidebarPage.Style';
-import { withRouter } from '../../Utils/WithRouter';
+import { Box, Button, IconButton } from "@mui/material";
+import { withStyles } from "@mui/styles";
+import React, { Component } from "react";
+import { SidebarData } from "../../Data/Sidebar/SidebarData";
+import { withRouter } from "../../Utils/WithRouter";
+import "./SideBarPage.css";
+import { SidebarPageStyles } from "./SidebarPage.Style";
 
 interface IProps {
   children: React.ReactNode;
@@ -25,14 +25,16 @@ class SidebarPage extends Component<IProps, IState> {
   navigateToPage = (data: any) => {
     let title = data.title;
     switch (title) {
-      case 'Profile':
-        return this.props.navigate('/myspace');
-      case 'Home':
-        return this.props.navigate('/');
-      case 'Search':
-        return this.props.navigate('/search');
-      case 'TV':
-        return this.props.navigate('/Tv');
+      case "Profile":
+        return this.props.navigate("/onboarding");
+      case "Home":
+        return this.props.navigate("/");
+      case "Search":
+        return this.props.navigate("/search");
+      case "TV":
+        return this.props.navigate("/Tv");
+      case "Movies":
+        return this.props.navigate("/Movies");
       default:
         break;
     }

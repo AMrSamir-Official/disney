@@ -1,21 +1,21 @@
-import { Box, Button } from '@mui/material';
-import React, { useState, FC, useEffect } from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
-import 'swiper/css/pagination';
-import 'swiper/css/navigation';
-import { Navigation } from 'swiper';
-import { baseURL } from '../../../api';
-import axios from 'axios';
-import './MovieByGenre.css';
-import { withStyles } from '@mui/styles';
-import { MoviesPagesStyle } from '../../User Pages/HomePage/Movies/MoviesPages.Style';
-import { moviesGenreId } from '../../Data/MoviesGenreId';
-import { useNavigate } from 'react-router-dom';
-import HoverCardPage from '../Hover Card/HoverCardPage';
-import { useDispatch } from 'react-redux';
-import { ADD_MOVIES, ADD_TV } from '../../Utils/redux/reducer/reducer';
-import errorImg from '../../../images/404/404.jpg';
+import { Box, Button } from "@mui/material";
+import { withStyles } from "@mui/styles";
+import axios from "axios";
+import React, { FC, useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { Navigation } from "swiper";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { REACT_APP_API_KEY, baseURL } from "../../../api";
+import errorImg from "../../../images/404/404.jpg";
+import { moviesGenreId } from "../../Data/MoviesGenreId";
+import { MoviesPagesStyle } from "../../User Pages/HomePage/Movies/MoviesPages.Style";
+import { ADD_MOVIES, ADD_TV } from "../../Utils/redux/reducer/reducer";
+import HoverCardPage from "../Hover Card/HoverCardPage";
+import "./MovieByGenre.css";
 
 interface IProps {
   classes?: any;
@@ -60,10 +60,11 @@ const MovieByGenre: FC<IProps> = (props: IProps) => {
   //api call for getting popular movies data
   const getMovieData = async () => {
     try {
+      console.log("my prop ", REACT_APP_API_KEY);
       const res = await axios(
-        `${baseURL}/3/discover/${tv ? 'tv' : 'movie'}?api_key=${
-          process.env.REACT_APP_API_KEY
-        }&language=en-US&sort_by=popularity.desc&page=1&include_video=true&with_genres=${
+        `${baseURL}/3/discover/${
+          tv ? "tv" : "movie"
+        }?api_key=${REACT_APP_API_KEY}&language=en-US&sort_by=popularity.desc&page=1&include_video=true&with_genres=${
           tv ? tvId : movieId
         }`
       );
@@ -71,7 +72,7 @@ const MovieByGenre: FC<IProps> = (props: IProps) => {
       setCurrData(resJson.results);
       // console.log('resJson', resJson.results);
     } catch (e) {
-      console.log('e', e);
+      console.log("e", e);
     }
   };
 
@@ -94,7 +95,7 @@ const MovieByGenre: FC<IProps> = (props: IProps) => {
     let videoKey;
     try {
       const res = await axios(
-        `${baseURL}/3/movie/${movieData.id}/videos?api_key=${process.env.REACT_APP_API_KEY}&language=en-US&type=trailer`
+        `${baseURL}/3/movie/${movieData.id}/videos?api_key=${REACT_APP_API_KEY}&language=en-US&type=trailer`
       );
       const resJson = res.data;
       videoKey = resJson.results[0].key;
@@ -115,7 +116,7 @@ const MovieByGenre: FC<IProps> = (props: IProps) => {
         onClick={() => navigateToViewAllPage()}
       >
         <Button className={classes.GenreBtn}>
-          {Genre} {tv ? 'Shows' : 'Movies'}
+          {Genre} {tv ? "Shows" : "Movies"}
         </Button>
         <Button className={classes.viewAllBtn}>View All</Button>
       </Box>

@@ -1,15 +1,15 @@
-import { FC, useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { Box, CardMedia, Typography } from '@mui/material';
-import HoverCardPage from '../Hover Card/HoverCardPage';
-import { baseURL } from '../../../api';
-import axios from 'axios';
-import './ViewAllPage.css';
-import LinearProgress from '@mui/material/LinearProgress';
-import { useSelector } from 'react-redux';
+import { Box, CardMedia, Typography } from "@mui/material";
+import LinearProgress from "@mui/material/LinearProgress";
+import axios from "axios";
+import { FC, useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { useLocation, useNavigate } from "react-router-dom";
+import { REACT_APP_API_KEY, baseURL } from "../../../api";
+import HoverCardPage from "../Hover Card/HoverCardPage";
+import "./ViewAllPage.css";
 
-import errorImg from '../../../images/404/404.jpg';
-import CircularLoading from '../../Utils/CircularLoading/CircularLoading';
+import errorImg from "../../../images/404/404.jpg";
+import CircularLoading from "../../Utils/CircularLoading/CircularLoading";
 
 interface IProps {
   classes?: any;
@@ -20,7 +20,7 @@ interface NavigateDataProps {
   backdrop_path: string;
   genre_ids: any[];
   id: number;
-  original_language: 'en';
+  original_language: "en";
   original_title: string;
   overview: string;
   popularity: number;
@@ -49,7 +49,7 @@ const ViewAllPage: FC<IProps> = (props: IProps) => {
     let videoKey;
     try {
       const res = await axios(
-        `${baseURL}/3/movie/${movieData.id}/videos?api_key=${process.env.REACT_APP_API_KEY}&language=en-US&type=trailer`
+        `${baseURL}/3/movie/${movieData.id}/videos?api_key=${REACT_APP_API_KEY}&language=en-US&type=trailer`
       );
       const resJson = res.data;
       videoKey = resJson.results[0].key;
@@ -66,7 +66,7 @@ const ViewAllPage: FC<IProps> = (props: IProps) => {
   }, []);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
   }, []);
 
   let currData = state.tv === true ? tvSeries : movies;
@@ -74,36 +74,36 @@ const ViewAllPage: FC<IProps> = (props: IProps) => {
   return (
     <Box
       sx={{
-        backgroundColor: '#000000 !important',
-        height: '100%',
-        paddingBottom: '5%',
+        backgroundColor: "#000000 !important",
+        height: "100%",
+        paddingBottom: "5%",
       }}
     >
       {!isLoading ? <LinearProgress /> : null}
       <Typography
         sx={{
-          color: '#ffffff !important',
-          width: '50%',
-          margin: 'auto',
+          color: "#ffffff !important",
+          width: "50%",
+          margin: "auto",
           fontFamily: '"Inter",sans-serif !important',
-          fontWeight: '600',
-          fontSize: '36px !important',
-          textTransform: 'capitalize !important',
-          textAlign: 'center',
-          paddingTop: '5%',
+          fontWeight: "600",
+          fontSize: "36px !important",
+          textTransform: "capitalize !important",
+          textAlign: "center",
+          paddingTop: "5%",
           // display: state ? 'block' : 'none',
         }}
       >
-        {state.Genre} {state.tv === true ? 'Shows' : 'Movies'}
+        {state.Genre} {state.tv === true ? "Shows" : "Movies"}
       </Typography>
 
       {!isLoading ? (
         <Box
           sx={{
-            margin: 'auto',
-            width: '10%',
-            height: '40vh',
-            marginTop: '15%',
+            margin: "auto",
+            width: "10%",
+            height: "40vh",
+            marginTop: "15%",
           }}
         >
           <CircularLoading />
@@ -111,12 +111,12 @@ const ViewAllPage: FC<IProps> = (props: IProps) => {
       ) : (
         <Box
           sx={{
-            display: 'flex !important',
-            flexDirection: 'row !important',
-            flexWrap: 'wrap',
-            width: '90%',
-            margin: 'auto',
-            marginTop: '5%',
+            display: "flex !important",
+            flexDirection: "row !important",
+            flexWrap: "wrap",
+            width: "90%",
+            margin: "auto",
+            marginTop: "5%",
           }}
         >
           {currData?.map((item: NavigateDataProps, index = Date.now()) => {

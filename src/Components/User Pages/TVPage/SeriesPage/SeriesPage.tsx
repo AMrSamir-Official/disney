@@ -1,8 +1,8 @@
-import { withStyles } from '@mui/styles';
-import MovieByGenre from '../../../Common Component/MovieByGenre/MovieByGenre';
-import { FC } from 'react';
-import { Box } from '@mui/material';
-import { MoviesPagesStyle } from '../../HomePage/Movies/MoviesPages.Style';
+import { Box } from "@mui/material";
+import { withStyles } from "@mui/styles";
+import { FC } from "react";
+import MovieByGenre from "../../../Common Component/MovieByGenre/MovieByGenre";
+import { MoviesPagesStyle } from "../../HomePage/Movies/MoviesPages.Style";
 
 interface IProps {
   classes?: any;
@@ -17,9 +17,9 @@ const SeriesPage: FC<IProps> = (props: IProps) => {
       <MovieByGenre tv={true} Genre="Kids" />
       <MovieByGenre tv={true} Genre="Comedy" />
       <MovieByGenre tv={true} Genre="Western" />
-      {/* <MovieByGenre tv={true} Genre="Drama" /> */}
+      <MovieByGenre tv={true} Genre="Drama" />
       <MovieByGenre tv={true} Genre="Crime" />
-      {/* <MovieByGenre tv={true} Genre="Documentary" /> */}
+      <MovieByGenre tv={true} Genre="Documentary" />
     </Box>
   );
 };
