@@ -32,7 +32,7 @@ This project is licensed under a permissive open-source license. You are free to
 1. Clone the repository from GitHub:
 
    ```bash
-   git clone https://github.com/AMrSamir-Official/your-repo-name.git
+   git clone https://github.com/AMrSamir-Official/disney.git
 
    ```
 
